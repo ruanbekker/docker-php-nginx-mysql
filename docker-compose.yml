@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./app/index.php:/var/www/index.php
+      - ./app/assets:/var/www/assets
     depends_on:
       - php-fpm
       - database
@@ -21,8 +22,16 @@ services:
       context: ./php-fpm
     container_name: php-fpm
     restart: unless-stopped
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=mydb
+      - MYSQL_USER=myuser
+      - MYSQL_PASSWORD=secret
     volumes:
       - ./app/index.php:/var/www/index.php
+      - ./app/connection.php:/var/www/connection.php
+      - ./app/assets:/var/www/assets
     depends_on:
       - database
     networks:
@@ -43,14 +52,14 @@ services:
       - php-stack
 
   database:
-    image: mariadb:latest
+    image: bitnami/mysql:5.7
     container_name: database
     restart: unless-stopped
     environment:
       - MYSQL_DATABASE=mydb
       - MYSQL_USER=myuser
       - MYSQL_PASSWORD=secret
-      - MYSQL_ROOT_PASSWORD=docker
+      - ALLOW_EMPTY_PASSWORD=yes
     volumes:
       - ./database/data.sql:/docker-entrypoint-initdb.d/data.sql
     networks:
@@ -58,4 +67,4 @@ services:
 
 networks:
   php-stack:
-    name: php-stack %
+    name: php-stack
